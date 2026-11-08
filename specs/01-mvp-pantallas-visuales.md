@@ -1,6 +1,6 @@
 # SPEC 01 — MVP visual: las 5 pantallas de Arcade Vault
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** —
 > **Fecha:** 2026-11-07
 > **Objetivo:** Portar a rutas del App Router las 5 pantallas de la plantilla `references/resources/templates/` (Biblioteca, Detalle, Reproductor, Acceso y Salón de la Fama) con datos ficticios y sin ningún juego real.
