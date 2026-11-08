@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useId, useState, type FormEvent } from "react";
 import { useUser } from "./use-user";
 
@@ -9,10 +9,23 @@ import { useUser } from "./use-user";
 
 type Tab = "in" | "up";
 
+// "/acceso?modo=crear" abre CREAR CUENTA; sin parámetro o con otro valor, INICIAR SESIÓN.
+function tabFromModo(modo: string | null): Tab {
+  return modo === "crear" ? "up" : "in";
+}
+
 export function AuthForm() {
   const router = useRouter();
   const { login, logout } = useUser();
-  const [tab, setTab] = useState<Tab>("in");
+  const modo = useSearchParams().get("modo");
+  const [tab, setTab] = useState<Tab>(() => tabFromModo(modo));
+  // Con <Activity> la ruta /acceso no se desmonta al salir: si se vuelve con otro
+  // ?modo, se reajusta la pestaña durante el render (sin efecto).
+  const [prevModo, setPrevModo] = useState(modo);
+  if (modo !== prevModo) {
+    setPrevModo(modo);
+    setTab(tabFromModo(modo));
+  }
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [email, setEmail] = useState("");
