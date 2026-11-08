@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { formatScore, getGame, getGames, seededScores } from "@/app/data/games";
 
 export async function generateStaticParams() {
@@ -7,8 +8,33 @@ export async function generateStaticParams() {
   return games.map((g) => ({ id: g.id }));
 }
 
-export default async function GameDetailPage(props: PageProps<"/juegos/[id]">) {
-  const { id } = await props.params;
+// Con partialPrefetching, el App Shell se comparte entre todos los /juegos/[id],
+// así que la lectura de `params` va dentro de <Suspense> y el shell lleva solo el esqueleto.
+export default function GameDetailPage(props: PageProps<"/juegos/[id]">) {
+  return (
+    <Suspense fallback={<GameDetailSkeleton />}>
+      <GameDetail params={props.params} />
+    </Suspense>
+  );
+}
+
+function GameDetailSkeleton() {
+  return (
+    <div className="av-detail" aria-busy="true">
+      <div>
+        <div className="detail-cover"></div>
+      </div>
+      <aside>
+        <div className="leaderboard">
+          <h3>MEJORES PUNTUACIONES</h3>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+async function GameDetail({ params }: Pick<PageProps<"/juegos/[id]">, "params">) {
+  const { id } = await params;
   const game = await getGame(id);
   if (!game) notFound();
 
