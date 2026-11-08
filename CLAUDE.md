@@ -6,17 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Arcade Vault is a platform for playing games online and competing for the highest score. The repo is still close to the `create-next-app` scaffold: `app/page.tsx` and the metadata in `app/layout.tsx` are template placeholders, and no games, scoring or persistence exist yet.
 
-## Commands
 
-```bash
-npm run dev              # dev server
-npm run build            # production build (also type-checks)
-npm start                # serve the production build
-npm run lint             # ESLint on the whole repo
-npx eslint app/page.tsx  # ESLint on one file
-npx tsc --noEmit         # type-check only
-npx next typegen         # generate route types without dev/build
-```
 
 No test runner is configured, so there is no test command yet.
 
@@ -27,6 +17,9 @@ On a clean checkout, run `npx next typegen` before `tsc`. Global route helpers s
 This project uses Next.js 16.4 and React 19.3, and their APIs may differ from your training data. As `AGENTS.md` requires, read the relevant guide in `node_modules/next/dist/docs/` before writing Next.js code.
 
 `next dev` manages blocks in `AGENTS.md` and restores them if removed. With `experimental.agentFeedback` enabled, it can also add a feedback-reporting block there. Commit `AGENTS.md` changes rather than reverting them.
+
+## Skills
+usa siempre /frontend-desing para diseñar el interfaz de usuario.
 
 ## Architecture
 
