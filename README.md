@@ -14,4 +14,14 @@ https://github.com/Klerith/fernando-skills
 ```bash
 npx skills@latest add Klerith/fernando-skills
 ```
-## Hola Mundo
+## Commands
+
+```bash
+npm run dev              # dev server
+npm run build            # production build (also type-checks)
+npm start                # serve the production build
+npm run lint             # ESLint on the whole repo
+npx eslint app/page.tsx  # ESLint on one file
+npx tsc --noEmit         # type-check only
+npx next typegen         # generate route types without dev/build
+```
