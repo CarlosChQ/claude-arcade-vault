@@ -127,7 +127,7 @@ Cada paso deja la app arrancando con `npm run dev`; las rutas aún no creadas si
 - [ ] `npm run lint` termina sin errores.
 - [ ] `npm run build` termina sin errores de prerender y lista `/`, `/acceso`, `/salon` y las 8 rutas `/juegos/[id]` y `/juegos/[id]/jugar`.
 - [ ] Ninguna pantalla muestra errores ni avisos de hidratación en la consola del navegador.
-- [ ] `/` muestra 8 tarjetas; escribir "ca" deja solo CAÍDA; el chip SHOOTER deja solo INVASORES y ROCAS; una búsqueda sin coincidencias muestra "NO HAY RESULTADOS".
+- [ ] `/` muestra 8 tarjetas; escribir "caí" deja solo CAÍDA ("ca" también deja ROCAS, igual que en la plantilla); el chip SHOOTER deja solo INVASORES y ROCAS; una búsqueda sin coincidencias muestra "NO HAY RESULTADOS".
 - [ ] Clic en una tarjeta de la Biblioteca lleva a `/juegos/<id>` de ese juego.
 - [ ] `/juegos/caida` muestra título, descripción larga, 3 estadísticas y 10 filas de puntuación ordenadas de mayor a menor.
 - [ ] `/juegos/no-existe` y `/juegos/no-existe/jugar` muestran la 404 temática con enlace a la Biblioteca.
