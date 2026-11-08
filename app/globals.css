@@ -213,6 +213,12 @@
     .av-nav .coin-counter { display: none; }
     .av-nav .hamburger { display: inline-flex; }
   }
+  /* En móviles estrechos (375px) logo + botón de sesión + hamburguesa no caben con
+     los huecos de escritorio y la hamburguesa queda fuera de pantalla. */
+  @media (max-width: 480px) {
+    .av-nav { gap: 12px; }
+    .av-nav .auth-btn { margin-left: 0; padding: 10px 12px; }
+  }
 
   .av-mobile-panel {
     position: fixed;
@@ -521,6 +527,10 @@
     position: absolute; left: 48%; top: 44%;
     color: var(--yellow); font-size: 22px;
     text-shadow: 0 0 8px var(--yellow);
+    /* ▲ no está en JetBrains Mono: en la plantilla cae en Courier New. Se fija la pila sin
+       el fallback escalado (Arial al 134 %) que añade next/font; JetBrains Mono va primero
+       para conservar las métricas de línea (y la posición vertical) de la plantilla. */
+    font-family: "JetBrains Mono", "Courier New", monospace;
   }
 
   .cover-rana { background: linear-gradient(180deg,#001f2a,#0a0a18); }
