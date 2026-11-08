@@ -61,7 +61,9 @@ export function Nav() {
           aria-label="Menú"
           aria-expanded={open}
         >
-          ≡
+          {/* ≡ no está en Press Start 2P: system-ui, como en la plantilla, en vez del
+              fallback escalado (Arial al 224 %) de next/font. */}
+          <span className="font-[system-ui]">≡</span>
         </button>
       </nav>
 
