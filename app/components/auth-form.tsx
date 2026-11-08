@@ -34,12 +34,7 @@ export function AuthForm() {
       <div className="auth-header">
         <div className="mark"></div>
         <h2 className="neon-cyan">ARCADE VAULT</h2>
-        <div
-          className="mono"
-          style={{ fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.16em", marginTop: 6 }}
-        >
-          ACCESO AL SISTEMA · v2.6
-        </div>
+        <div className="mono mt-1.5 text-[11px] tracking-[0.16em] text-ink-faint">ACCESO AL SISTEMA · v2.6</div>
       </div>
 
       <div className="auth-tabs">
@@ -87,12 +82,12 @@ export function AuthForm() {
           />
         </div>
 
-        <button className="btn lg" type="submit" style={{ width: "100%", marginTop: 8 }}>
+        <button className="btn lg mt-2 w-full" type="submit">
           {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
         </button>
       </form>
 
-      <button type="button" className="btn ghost" style={{ width: "100%", marginTop: 10 }} onClick={playAsGuest}>
+      <button type="button" className="btn ghost mt-2.5 w-full" onClick={playAsGuest}>
         JUGAR COMO INVITADO
       </button>
 
@@ -106,9 +101,7 @@ export function AuthForm() {
         </button>
       </div>
 
-      <div
-        style={{ marginTop: 18, textAlign: "center", fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.1em" }}
-      >
+      <div className="mt-[18px] text-center text-[11px] tracking-[0.1em] text-ink-faint">
         AL ENTRAR ACEPTAS LOS TÉRMINOS DEL SALÓN ARCADE
       </div>
     </div>

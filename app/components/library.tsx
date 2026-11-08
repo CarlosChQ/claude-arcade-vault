@@ -47,8 +47,8 @@ export function Library({ games }: { games: Game[] }) {
           <GameCard key={g.id} game={g} />
         ))}
         {filtered.length === 0 && (
-          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 80, color: "var(--ink-faint)" }}>
-            <div className="pixel" style={{ fontSize: 14, color: "var(--magenta)", marginBottom: 12 }}>
+          <div className="col-span-full p-20 text-center text-ink-faint">
+            <div className="pixel mb-3 text-[14px] text-magenta">
               NO HAY RESULTADOS
             </div>
             <div>Intenta otra búsqueda o categoría.</div>

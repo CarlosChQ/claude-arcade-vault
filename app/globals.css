@@ -213,6 +213,12 @@
     .av-nav .coin-counter { display: none; }
     .av-nav .hamburger { display: inline-flex; }
   }
+  /* En móviles estrechos (375px) logo + botón de sesión + hamburguesa no caben con
+     los huecos de escritorio y la hamburguesa queda fuera de pantalla. */
+  @media (max-width: 480px) {
+    .av-nav { gap: 12px; }
+    .av-nav .auth-btn { margin-left: 0; padding: 10px 12px; }
+  }
 
   .av-mobile-panel {
     position: fixed;

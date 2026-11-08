@@ -37,14 +37,14 @@ export function HallOfFame({ games }: { games: Game[] }) {
           <div className="date">{rows[1].date}</div>
         </div>
         <div className="podium-slot gold">
-          <div className="pixel" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.18em" }}>
+          <div className="pixel text-[9px] tracking-[0.18em] text-gold">
             CAMPEÓN
           </div>
-          <div className="rank-num" style={{ fontSize: 36, marginTop: 4 }}>
+          <div className="rank-num mt-1 text-[36px]">
             01
           </div>
           <div className="name">{rows[0].name}</div>
-          <div className="score" style={{ fontSize: 20 }}>
+          <div className="score text-[20px]">
             {formatScore(rows[0].score)}
           </div>
           <div className="date">{rows[0].date}</div>
@@ -80,13 +80,13 @@ export function HallOfFame({ games }: { games: Game[] }) {
           <>
             <div className="tr you-label">▸ TU MEJOR MARCA EN {game.title}</div>
             <div className="tr you" style={{ animationDelay: `${rows.length * 50 + 50}ms` }}>
-              <div className="rk" style={{ color: "var(--yellow)" }}>
+              <div className="rk text-yellow">
                 #{String(youRank).padStart(2, "0")}
               </div>
-              <div className="pl" style={{ color: "var(--yellow)" }}>
+              <div className="pl text-yellow">
                 {user.name}
               </div>
-              <div className="sc" style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}>
+              <div className="sc text-yellow text-shadow-[0_0_6px_rgba(245,255,0,0.5)]">
                 {formatScore(youScore || 9999)}
               </div>
               {/* Fecha fija aceptada en el MVP (ver Riesgos en la spec). */}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useReducer, useState } from "react";
+import { Fragment, useEffect, useReducer, useState } from "react";
 import { formatScore, type Game } from "@/app/data/games";
 import { saveScore, useUser } from "./use-user";
 
@@ -73,10 +73,10 @@ export function GamePlayer({ game }: { game: Game }) {
   return (
     <div className="av-player fade-in">
       <div className="player-hud">
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+        <div className="flex flex-wrap gap-6">
           <div className="hud-stat">
             <div className="l">Jugador</div>
-            <div className="v" style={{ color: "var(--ink)" }}>
+            <div className="v text-ink">
               {name}
             </div>
           </div>
@@ -86,7 +86,19 @@ export function GamePlayer({ game }: { game: Game }) {
           </div>
           <div className="hud-stat lives">
             <div className="l">Vidas</div>
-            <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
+            {/* ♥ no existe en Press Start 2P: cada corazón se pinta con system-ui, como en la
+                plantilla, y no con el fallback escalado que genera next/font. Los espacios
+                siguen en la fuente pixel para conservar la separación. */}
+            <div className="v">
+              {lives > 0
+                ? Array.from({ length: lives }, (_, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && " "}
+                      <span className="font-[system-ui]">♥</span>
+                    </Fragment>
+                  ))
+                : "—"}
+            </div>
           </div>
           <div className="hud-stat level">
             <div className="l">Nivel</div>
@@ -116,15 +128,12 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="player-ship"></div>
           </div>
           {paused && (
-            <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>
+            <div className="crt-content z-5 bg-black/60">
               <div>
-                <div className="pixel neon-yellow" style={{ fontSize: 22 }}>
+                <div className="pixel neon-yellow text-[22px]">
                   EN PAUSA
                 </div>
-                <div
-                  className="mono"
-                  style={{ fontSize: 11, color: "var(--ink-dim)", marginTop: 10, letterSpacing: "0.16em" }}
-                >
+                <div className="mono mt-2.5 text-[11px] tracking-[0.16em] text-ink-dim">
                   PULSA REANUDAR PARA CONTINUAR
                 </div>
               </div>

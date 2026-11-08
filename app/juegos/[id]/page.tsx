@@ -46,7 +46,7 @@ async function GameDetail({ params }: Pick<PageProps<"/juegos/[id]">, "params">)
         <div className="detail-cover">
           <div className={"cover-bg " + game.cover}></div>
         </div>
-        <div style={{ marginTop: 20 }} className="detail-info">
+        <div className="detail-info mt-5">
           <div className="detail-tags">
             <span>{game.cat}</span>
             <span>1 JUGADOR</span>
@@ -62,13 +62,13 @@ async function GameDetail({ params }: Pick<PageProps<"/juegos/[id]">, "params">)
             </div>
             <div>
               <div className="l">Mejor global</div>
-              <div className="v" style={{ color: "var(--magenta)", textShadow: "0 0 6px rgba(255,0,110,0.5)" }}>
+              <div className="v text-magenta text-shadow-[0_0_6px_rgba(255,0,110,0.5)]">
                 {formatScore(game.best)}
               </div>
             </div>
             <div>
               <div className="l">Dificultad</div>
-              <div className="v" style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}>
+              <div className="v text-yellow text-shadow-[0_0_6px_rgba(245,255,0,0.5)]">
                 ★ ★ ★ ☆ ☆
               </div>
             </div>
@@ -95,7 +95,7 @@ async function GameDetail({ params }: Pick<PageProps<"/juegos/[id]">, "params">)
               <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
               <div className="pl">
                 {r.name}
-                <div style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.1em" }}>{r.date}</div>
+                <div className="text-[10px] tracking-[0.1em] text-ink-faint">{r.date}</div>
               </div>
               <div className="sc">{formatScore(r.score)}</div>
             </div>
