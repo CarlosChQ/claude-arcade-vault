@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="mono mt-8 max-w-md text-sm text-ink-dim">
         Este cartucho no está en el vault. Puede que el enlace esté roto o que el juego aún no exista.
       </p>
-      <Link href="/" className="btn lg pulse mt-10">
+      <Link href="/games" className="btn lg pulse mt-10">
         VOLVER A LA BIBLIOTECA
       </Link>
       <div className="pixel mt-6 text-[9px] tracking-[0.16em] text-ink-faint">

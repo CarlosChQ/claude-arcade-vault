@@ -8,9 +8,9 @@ export async function generateStaticParams() {
   return games.map((g) => ({ id: g.id }));
 }
 
-// Con partialPrefetching, el App Shell se comparte entre todos los /juegos/[id],
+// Con partialPrefetching, el App Shell se comparte entre todos los /games/[id],
 // así que la lectura de `params` va dentro de <Suspense> y el shell lleva solo el esqueleto.
-export default function GameDetailPage(props: PageProps<"/juegos/[id]">) {
+export default function GameDetailPage(props: PageProps<"/games/[id]">) {
   return (
     <Suspense fallback={<GameDetailSkeleton />}>
       <GameDetail params={props.params} />
@@ -33,7 +33,7 @@ function GameDetailSkeleton() {
   );
 }
 
-async function GameDetail({ params }: Pick<PageProps<"/juegos/[id]">, "params">) {
+async function GameDetail({ params }: Pick<PageProps<"/games/[id]">, "params">) {
   const { id } = await params;
   const game = await getGame(id);
   if (!game) notFound();
@@ -74,10 +74,10 @@ async function GameDetail({ params }: Pick<PageProps<"/juegos/[id]">, "params">)
             </div>
           </div>
           <div className="detail-actions">
-            <Link href={`/juegos/${game.id}/jugar`} className="btn xl pulse">
+            <Link href={`/games/${game.id}/jugar`} className="btn xl pulse">
               ▶ JUGAR AHORA
             </Link>
-            <Link href="/" className="btn ghost lg">
+            <Link href="/games" className="btn ghost lg">
               VOLVER AL VAULT
             </Link>
           </div>
