@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthForm } from "@/app/components/auth-form";
 
 export const metadata: Metadata = {
@@ -8,7 +9,10 @@ export const metadata: Metadata = {
 export default function AccesoPage() {
   return (
     <div className="av-auth-wrap fade-in">
-      <AuthForm />
+      {/* AuthForm lee ?modo con useSearchParams: con cacheComponents necesita Suspense. */}
+      <Suspense fallback={<div className="auth-card min-h-[631px]" aria-hidden="true"></div>}>
+        <AuthForm />
+      </Suspense>
     </div>
   );
 }

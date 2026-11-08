@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useUser } from "./use-user";
 
-type Section = "biblioteca" | "salon" | "acceso";
+type Section = "inicio" | "biblioteca" | "salon" | "acceso";
 
 function sectionOf(pathname: string): Section | null {
-  if (pathname === "/" || pathname.startsWith("/juegos/")) return "biblioteca";
+  if (pathname === "/") return "inicio";
+  if (pathname === "/games" || pathname.startsWith("/games/")) return "biblioteca";
   if (pathname === "/salon") return "salon";
   if (pathname === "/acceso") return "acceso";
   return null;
@@ -33,7 +34,10 @@ export function Nav() {
           </div>
         </Link>
         <div className="links">
-          <Link href="/" className={activeClass("biblioteca")}>
+          <Link href="/" className={activeClass("inicio")}>
+            Inicio
+          </Link>
+          <Link href="/games" className={activeClass("biblioteca")}>
             Biblioteca
           </Link>
           <Link href="/salon" className={activeClass("salon")}>
@@ -72,7 +76,10 @@ export function Nav() {
         <div className="pixel neon-cyan mb-4 text-[11px]">
           MENÚ
         </div>
-        <Link href="/" className={activeClass("biblioteca")} onClick={close}>
+        <Link href="/" className={activeClass("inicio")} onClick={close}>
+          Inicio
+        </Link>
+        <Link href="/games" className={activeClass("biblioteca")} onClick={close}>
           Biblioteca
         </Link>
         <Link href="/salon" className={activeClass("salon")} onClick={close}>

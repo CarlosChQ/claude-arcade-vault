@@ -9,8 +9,8 @@ export async function generateStaticParams() {
 }
 
 // La lectura de `params` va dentro de <Suspense> para que el App Shell compartido
-// de /juegos/[id]/jugar no dependa de la URL (partialPrefetching).
-export default function GamePlayerPage(props: PageProps<"/juegos/[id]/jugar">) {
+// de /games/[id]/jugar no dependa de la URL (partialPrefetching).
+export default function GamePlayerPage(props: PageProps<"/games/[id]/jugar">) {
   return (
     <Suspense fallback={<GamePlayerSkeleton />}>
       <GamePlayerLoader params={props.params} />
@@ -28,7 +28,7 @@ function GamePlayerSkeleton() {
   );
 }
 
-async function GamePlayerLoader({ params }: Pick<PageProps<"/juegos/[id]/jugar">, "params">) {
+async function GamePlayerLoader({ params }: Pick<PageProps<"/games/[id]/jugar">, "params">) {
   const { id } = await params;
   const game = await getGame(id);
   if (!game) notFound();
