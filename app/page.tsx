@@ -8,6 +8,8 @@ import { RECENT_SCORES, TOP_PLAYERS } from "@/app/data/home";
 
 // Home / landing de Arcade Vault (SPEC 02).
 // Portada de references/resources/templates/home-about/home.jsx.
+// → y ▼ no están en Press Start 2P: van en system-ui, como en la plantilla, en vez
+// del fallback escalado de next/font (que los dibuja al doble de ancho).
 
 export const metadata: Metadata = {
   title: "Arcade Vault · Portal Retro",
@@ -114,7 +116,7 @@ export default async function Home() {
           </div>
           <div className="hero-scroll" aria-hidden="true">
             <span>DESLIZA</span>
-            <span className="arrow">▼</span>
+            <span className="arrow font-[system-ui]">▼</span>
           </div>
         </div>
       </section>
@@ -143,7 +145,7 @@ export default async function Home() {
         </div>
         <div className="mt-6 text-center">
           <Link href="/games" className="btn lg">
-            VER TODOS LOS JUEGOS →
+            VER TODOS LOS JUEGOS <span className="font-[system-ui]">→</span>
           </Link>
         </div>
       </Reveal>
@@ -185,7 +187,7 @@ export default async function Home() {
             <div className="ac-head">
               <div className="ac-title pixel neon-magenta">▸ TOP JUGADORES · HOY</div>
               <Link href="/salon" className="lb-link">
-                VER SALÓN →
+                VER SALÓN <span className="font-[system-ui]">→</span>
               </Link>
             </div>
             <div className="top-list">
@@ -222,7 +224,7 @@ export default async function Home() {
               ))}
             </ul>
             <Link href="/acceso?modo=crear" className="btn xl pulse w-full">
-              EMPEZAR GRATIS →
+              EMPEZAR GRATIS <span className="font-[system-ui]">→</span>
             </Link>
             <div className="pc-foot">No pedimos tarjeta. Nunca lo haremos.</div>
             <div className="pc-stamp pixel">
@@ -247,7 +249,7 @@ export default async function Home() {
       <Reveal className="home-final">
         <h2 className="final-title pixel">¿LISTO PARA JUGAR?</h2>
         <Link href="/games" className="btn xl pulse final-cta">
-          INSERTAR MONEDA →
+          INSERTAR MONEDA <span className="font-[system-ui]">→</span>
         </Link>
         <div className="final-tag">Gratis. Sin registro obligatorio. Empieza en segundos.</div>
       </Reveal>
