@@ -1328,8 +1328,10 @@
   .term-body .caret { animation: blink 1s steps(1) infinite; }
 
   /* ===== CONTACT: estados nuevos (SPEC 03) ===== */
+  /* El gap de 6px de .field ya separa el error del input: sin margen extra,
+     el mensaje queda pegado a su campo y no al siguiente. */
   .field-error {
-    display: block; margin-top: 6px;
+    display: block;
     font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
     color: var(--magenta); text-shadow: 0 0 6px rgba(255,0,110,0.35);
   }
@@ -1341,4 +1343,19 @@
     text-shadow: 0 0 6px rgba(255,0,110,0.35);
   }
   .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  /* Campo inválido: borde magenta, mismo tratamiento que el foco cyan. */
+  .contact-form .field [aria-invalid="true"] { border-color: var(--magenta); }
+  .contact-form .field [aria-invalid="true"]:focus { box-shadow: 0 0 12px rgba(255,0,110,0.35); }
+
+  /* Enviando: campos de solo lectura atenuados y botón "encendido" sin hover ni pulsación. */
+  .contact-form .field input:read-only,
+  .contact-form .field textarea:read-only { color: var(--ink-dim); }
+  .contact-form .btn:disabled,
+  .contact-form .btn:disabled:hover,
+  .contact-form .btn:disabled:active {
+    cursor: progress; transform: none;
+    color: var(--cyan); text-shadow: 0 0 8px rgba(0,245,255,0.6);
+    box-shadow: inset 0 0 8px rgba(0,245,255,0.25);
+  }
 }
