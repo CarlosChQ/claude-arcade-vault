@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HighlightIcon, type HighlightKind } from "@/app/components/about-art";
+import { ContactForm } from "@/app/components/contact-form";
 import { Reveal } from "@/app/components/reveal";
 
 export const metadata: Metadata = {
@@ -73,8 +74,7 @@ export default function AcercaPage() {
             </div>
           </div>
 
-          {/* Hueco del formulario: lo ocupa <ContactForm> en el paso 7. */}
-          <div className="contact-form"></div>
+          <ContactForm />
         </div>
       </Reveal>
     </div>
