@@ -10,6 +10,8 @@ Arcade Vault is a platform for playing games online and competing for the highes
 
 No test runner is configured, so there is no test command yet.
 
+The contact form on `/acerca` sends mail through Resend from a Server Action. It reads `RESEND_API_KEY` and `CONTACT_TO_EMAIL` (both required) and `CONTACT_FROM_EMAIL` (optional, defaults to `Arcade Vault <onboarding@resend.dev>`) on the server only. Copy `.env.template` to `.env.local` to set them. With the `onboarding@resend.dev` sender, Resend delivers only to the Resend account's own address. Without these variables the build still works and the form shows a generic error.
+
 On a clean checkout, run `npx next typegen` before `tsc`. Global route helpers such as `LayoutProps<"/">` (used in `app/layout.tsx`) are generated into `.next/`, not imported.
 
 ## Next.js version
