@@ -1,6 +1,6 @@
 # SPEC 04 — Supabase: infraestructura base en Next.js
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 03
 > **Fecha:** 2026-11-18
 > **Objetivo:** Conectar la app al proyecto Supabase con clientes tipados de servidor y navegador, variables de entorno documentadas y una ruta `/api/health/supabase` que confirma la conexión, sin cambiar ninguna pantalla.
