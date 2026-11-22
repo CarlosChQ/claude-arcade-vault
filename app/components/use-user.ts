@@ -2,14 +2,13 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-// Sesión y puntuaciones mock en localStorage, con las mismas claves que la plantilla.
-// Se sustituirá por autenticación y backend reales en specs futuras.
+// Sesión mock en localStorage, con la misma clave que la plantilla.
+// Se sustituirá por autenticación real en specs futuras. Las puntuaciones se
+// guardan en Supabase (SPEC 06, submitScore).
 
 export type User = { name: string };
-export type ScoreEntry = { game: string; score: number; name: string; at: number };
 
 const USER_KEY = "av_user";
-const SCORES_KEY = "av_scores";
 const USER_EVENT = "av-user-change";
 
 // Caché del snapshot: useSyncExternalStore exige devolver la misma referencia
@@ -84,16 +83,4 @@ export function useUser() {
   }, []);
 
   return { user, login, logout };
-}
-
-/** Añade una puntuación a av_scores. Tolera fallos de localStorage. */
-export function saveScore(entry: Omit<ScoreEntry, "at">): void {
-  try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(SCORES_KEY) || "[]");
-    const all: ScoreEntry[] = Array.isArray(parsed) ? parsed : [];
-    all.push({ ...entry, at: Date.now() });
-    localStorage.setItem(SCORES_KEY, JSON.stringify(all));
-  } catch {
-    // localStorage lleno, bloqueado o con datos corruptos: no se guarda.
-  }
 }
