@@ -439,6 +439,14 @@
   /* ===== Cover art generators (pure CSS) ===== */
   .cover-bg { position: absolute; inset: 0; }
 
+  /* Asteroides: trazo vectorial hueco (no relleno, a diferencia de ROCAS) con los colores de
+     palette.ts. La roca partida entre los bordes izquierdo y derecho insinúa el espacio toroidal. */
+  .cover-asteroides {
+    background:
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><defs><filter id='g' x='-30%25' y='-30%25' width='160%25' height='160%25'><feGaussianBlur stdDeviation='2.4' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><g fill='%23e6e9ff' opacity='.45'><circle cx='150' cy='40' r='1'/><circle cx='210' cy='70' r='.8'/><circle cx='380' cy='150' r='1'/><circle cx='95' cy='250' r='.8'/><circle cx='260' cy='280' r='1'/><circle cx='30' cy='200' r='.8'/></g><g filter='url(%23g)' fill='none' stroke-width='2' stroke-linejoin='round'><g stroke='%23f5ff00'><polygon points='340,88 320.6,113.9 302.9,143.2 270.5,132.7 242.1,119.2 245,88 238.9,54.5 269.9,41.4 301.1,38.5 321.4,61.5'/><polygon points='360,225 348.4,240.4 335.4,255.5 319,244.1 303.7,234.6 306.5,216.5 314,197.3 334,202.3 352.2,206.4'/><polygon points='69,60 62.8,67.8 55,75 47.9,67.1 42,60 46.5,51.5 55,45 62.8,52.2'/><polygon points='18,130 7,142.1 -9.5,146.5 -13,130 -8.5,115.3 7.5,117'/><polygon transform='translate(400 0)' points='18,130 7,142.1 -9.5,146.5 -13,130 -8.5,115.3 7.5,117'/></g><g fill='%23f5ff00' stroke='none'><circle cx='236' cy='112' r='1.4'/><circle cx='232' cy='124' r='1.1'/><circle cx='229' cy='108' r='.9'/></g><g stroke='%23e6e9ff' stroke-linecap='round'><line x1='170' y1='148.3' x2='176' y2='145.1'/><line x1='196.5' y1='134.2' x2='202.5' y2='131'/><line x1='223' y1='120.1' x2='229' y2='116.9'/></g><g transform='translate(120 175) rotate(-28) scale(1.6)'><polygon stroke='%23ff006e' points='-8,-4 -19,0 -8,4' stroke-width='1.2'/><polygon stroke='%2300f5ff' points='20,0 -12,-9 -7,0 -12,9' stroke-width='1.25'/></g><g stroke='%2300ff88'><circle cx='205' cy='250' r='9'/><circle cx='205' cy='250' r='3' fill='%2300ff88'/></g></g></svg>") center / cover no-repeat,
+      radial-gradient(circle at 72% 30%, #12102e, #000 72%);
+  }
+
   .cover-bricks { background:
     repeating-linear-gradient(90deg, #ff006e 0 32px, #ffae00 32px 64px, #00f5ff 64px 96px, #00ff88 96px 128px) 0 0/100% 32px,
     #15151f; }
@@ -648,6 +656,7 @@
   .hud-stat .v { font-family: var(--pixel); font-size: 16px; color: var(--cyan); text-shadow: 0 0 6px rgba(0,245,255,0.5); }
   .hud-stat.lives .v { color: var(--magenta); text-shadow: 0 0 6px rgba(255,0,110,0.5); }
   .hud-stat.level .v { color: var(--yellow); text-shadow: 0 0 6px rgba(245,255,0,0.5); }
+  .hud-stat.power .v { color: var(--green); text-shadow: 0 0 6px rgba(0,255,136,0.5); }
   .hud-actions { display: flex; gap: 10px; }
 
   .crt {
@@ -712,6 +721,10 @@
     content: ""; width: 8px; height: 8px; border-radius: 50%;
     background: var(--green); box-shadow: 0 0 6px var(--green);
   }
+
+  /* Canvas de un motor real. Sin position: así las scanlines (::after) y la viñeta (::before)
+     de .crt-screen, que sí están posicionadas, se pintan encima. El buffer es 800×600 (4:3). */
+  .game-canvas { display: block; width: 100%; height: 100%; }
 
   /* fake in-screen game */
   .game-arena {

@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useReducer, useState } from "react";
+import { Fragment, useEffect, useReducer, useRef, useState } from "react";
 import { formatScore, type Game } from "@/app/data/games";
+import type { GameStats } from "@/app/lib/games/engine";
+import { ENGINES } from "@/app/lib/games/registry";
+import { GameCanvas, type GameCanvasHandle } from "./game-canvas";
 import { saveScore, useUser } from "./use-user";
 
-// Simulación decorativa de la plantilla: no hay juego real.
-// La puntuación sube sola cada TICK_MS mientras no haya pausa ni fin.
+// Si el juego tiene un motor registrado en ENGINES, se juega de verdad en un canvas y el
+// HUD se alimenta de sus estadísticas. Si no, se mantiene la simulación decorativa de la
+// plantilla: la puntuación sube sola cada TICK_MS mientras no haya pausa ni fin.
 
 const TICK_MS = 220;
 
-type State = {
-  score: number;
-  lives: number;
-  level: number;
+type State = GameStats & {
   paused: boolean;
   over: boolean;
   saved: boolean;
@@ -21,12 +22,22 @@ type State = {
 
 type Action =
   | { type: "tick"; inc: number }
-  | { type: "togglePause" }
+  | { type: "stats"; stats: GameStats }
+  | { type: "pause" }
+  | { type: "resume" }
   | { type: "end" }
   | { type: "saved" }
   | { type: "restart" };
 
-const INITIAL: State = { score: 0, lives: 3, level: 1, paused: false, over: false, saved: false };
+const INITIAL: State = {
+  score: 0,
+  lives: 3,
+  level: 1,
+  power: null,
+  paused: false,
+  over: false,
+  saved: false,
+};
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -37,15 +48,25 @@ function reducer(state: State, action: Action): State {
       const level = score > 0 && score % 2500 < 100 ? state.level + 1 : state.level;
       return { ...state, score, level };
     }
-    case "togglePause":
-      return { ...state, paused: !state.paused };
+    case "stats":
+      return { ...state, ...action.stats };
+    case "pause":
+      return state.paused ? state : { ...state, paused: true };
+    case "resume":
+      return state.paused ? { ...state, paused: false } : state;
     case "end":
-      return { ...state, over: true };
+      return state.over ? state : { ...state, over: true };
     case "saved":
       return { ...state, saved: true };
     case "restart":
       return INITIAL;
   }
+}
+
+/** Teclas escritas en un campo de texto (p. ej. las iniciales del modal) no controlan el juego. */
+function isTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
 }
 
 export function GamePlayer({ game }: { game: Game }) {
@@ -55,15 +76,74 @@ export function GamePlayer({ game }: { game: Game }) {
   const [editedName, setEditedName] = useState<string | null>(null);
   const name = editedName ?? user?.name ?? "INVITADO";
 
-  const { score, lives, level, paused, over, saved } = state;
+  const createEngine = ENGINES[game.id];
+  const canvasRef = useRef<GameCanvasHandle>(null);
 
-  // El intervalo vive en el efecto y se limpia en su cleanup: se detiene al pausar,
+  const { score, lives, level, power, paused, over, saved } = state;
+
+  // Simulación: el intervalo vive en el efecto y se limpia en su cleanup: se detiene al pausar,
   // al terminar y cuando Next.js oculta la ruta con <Activity> al navegar fuera.
   useEffect(() => {
-    if (over || paused) return;
+    if (createEngine || over || paused) return;
     const t = setInterval(() => dispatch({ type: "tick", inc: Math.floor(10 + Math.random() * 90) }), TICK_MS);
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [createEngine, over, paused]);
+
+  const pause = () => {
+    if (over) return;
+    canvasRef.current?.pause();
+    dispatch({ type: "pause" });
+  };
+
+  const resume = () => {
+    if (over) return;
+    canvasRef.current?.resume();
+    dispatch({ type: "resume" });
+  };
+
+  const togglePause = () => (paused ? resume() : pause());
+
+  // Motor: P y Escape alternan la pausa; ocultar la pestaña pausa (sin reanudar sola).
+  useEffect(() => {
+    if (!createEngine || over) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat || isTypingTarget(e.target)) return;
+      if (e.code !== "KeyP" && e.code !== "Escape") return;
+      e.preventDefault();
+      if (paused) {
+        canvasRef.current?.resume();
+        dispatch({ type: "resume" });
+      } else {
+        canvasRef.current?.pause();
+        dispatch({ type: "pause" });
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) return;
+      canvasRef.current?.pause();
+      dispatch({ type: "pause" });
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [createEngine, over, paused]);
+
+  const onEnd = () => {
+    // Con motor, end() emite onGameOver y este abre el modal.
+    if (createEngine) canvasRef.current?.end();
+    else dispatch({ type: "end" });
+  };
+
+  const onRestart = () => {
+    dispatch({ type: "restart" });
+    canvasRef.current?.restart();
+  };
 
   const onSave = () => {
     saveScore({ game: game.id, score, name });
@@ -104,12 +184,18 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="l">Nivel</div>
             <div className="v">{String(level).padStart(2, "0")}</div>
           </div>
+          {power !== null && (
+            <div className="hud-stat power">
+              <div className="l">Power</div>
+              <div className="v">3x {power.toFixed(1)}s</div>
+            </div>
+          )}
         </div>
         <div className="hud-actions">
-          <button type="button" className="btn yellow" onClick={() => dispatch({ type: "togglePause" })}>
+          <button type="button" className="btn yellow" onClick={togglePause}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
-          <button type="button" className="btn magenta" onClick={() => dispatch({ type: "end" })}>
+          <button type="button" className="btn magenta" onClick={onEnd}>
             FIN
           </button>
           <Link href={`/games/${game.id}`} className="btn ghost">
@@ -120,13 +206,24 @@ export function GamePlayer({ game }: { game: Game }) {
 
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena" aria-hidden="true">
-            <div className="grid-floor"></div>
-            <div className="enemy e1"></div>
-            <div className="enemy e2"></div>
-            <div className="enemy e3"></div>
-            <div className="player-ship"></div>
-          </div>
+          {createEngine ? (
+            <GameCanvas
+              ref={canvasRef}
+              create={createEngine}
+              title={game.title}
+              onStats={(stats) => dispatch({ type: "stats", stats })}
+              onGameOver={() => dispatch({ type: "end" })}
+              onHide={() => dispatch({ type: "pause" })}
+            />
+          ) : (
+            <div className="game-arena" aria-hidden="true">
+              <div className="grid-floor"></div>
+              <div className="enemy e1"></div>
+              <div className="enemy e2"></div>
+              <div className="enemy e3"></div>
+              <div className="player-ship"></div>
+            </div>
+          )}
           {paused && (
             <div className="crt-content z-5 bg-black/60">
               <div>
@@ -169,7 +266,7 @@ export function GamePlayer({ game }: { game: Game }) {
               <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
             )}
             <div className="actions">
-              <button type="button" className="btn" onClick={() => dispatch({ type: "restart" })}>
+              <button type="button" className="btn" onClick={onRestart}>
                 JUGAR DE NUEVO
               </button>
               <Link href="/games" className="btn magenta">
