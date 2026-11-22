@@ -274,8 +274,14 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
     rafId = null;
   }
 
+  /** Listeners puestos solo mientras el bucle corre: un motor en pausa no deja nada en window. */
   function syncInput() {
-    input.setEnabled(shouldRun() && state !== "gameover");
+    if (shouldRun()) {
+      input.attach();
+      input.setEnabled(state !== "gameover");
+    } else {
+      input.detach();
+    }
   }
 
   initGame();
@@ -284,7 +290,6 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
     start() {
       if (started || destroyed) return;
       started = true;
-      input.attach();
       syncInput();
       lastTime = null;
       emitStats();

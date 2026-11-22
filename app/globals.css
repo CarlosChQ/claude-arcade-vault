@@ -656,6 +656,7 @@
   .hud-stat .v { font-family: var(--pixel); font-size: 16px; color: var(--cyan); text-shadow: 0 0 6px rgba(0,245,255,0.5); }
   .hud-stat.lives .v { color: var(--magenta); text-shadow: 0 0 6px rgba(255,0,110,0.5); }
   .hud-stat.level .v { color: var(--yellow); text-shadow: 0 0 6px rgba(245,255,0,0.5); }
+  .hud-stat.power .v { color: var(--green); text-shadow: 0 0 6px rgba(0,255,136,0.5); }
   .hud-actions { display: flex; gap: 10px; }
 
   .crt {
@@ -720,6 +721,10 @@
     content: ""; width: 8px; height: 8px; border-radius: 50%;
     background: var(--green); box-shadow: 0 0 6px var(--green);
   }
+
+  /* Canvas de un motor real. Sin position: así las scanlines (::after) y la viñeta (::before)
+     de .crt-screen, que sí están posicionadas, se pintan encima. El buffer es 800×600 (4:3). */
+  .game-canvas { display: block; width: 100%; height: 100%; }
 
   /* fake in-screen game */
   .game-arena {

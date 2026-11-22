@@ -95,8 +95,8 @@ export type EngineEvents = {
 
 export interface GameEngine {
   start(): void;   // arranca el bucle rAF y el input
-  pause(): void;   // congela la simulación; deja de leer input de juego
-  resume(): void;  // reanuda sin salto de dt (el primer frame tras reanudar usa dt = 0)
+  pause(): void;   // congela la simulación; cancela rAF y quita los listeners de teclado
+  resume(): void;  // reanuda sin salto de dt (el primer frame tras reanudar usa dt = 0) y vuelve a poner los listeners
   end(): void;     // termina la partida (botón FIN) y emite onGameOver
   restart(): void; // partida nueva desde cero
   destroy(): void; // cancela rAF y quita todos los listeners
@@ -151,7 +151,7 @@ Valores literales de los tokens de `app/globals.css`, porque el canvas no lee va
 | `Space`         | Disparar             | Motor                        |
 | `KeyP`, `Escape` | Pausa / reanudar    | `GamePlayer`                 |
 
-- Los listeners están en `window` y se registran en `start()` y se quitan en `destroy()`.
+- Los listeners están en `window`, se registran en `start()`/`resume()`/`restart()` y se quitan en `pause()`/`end()`/`destroy()`. Así un motor en pausa no deja listeners aunque Next.js descarte la ruta oculta.
 - Se llama a `preventDefault()` solo para esas teclas, para que flechas y Espacio no hagan scroll.
 - Si el foco está en un `input`, `textarea` o elemento `contenteditable`, se ignoran (por ejemplo, las iniciales del modal).
 - `blur` de la ventana limpia las teclas pulsadas, para que la nave no siga girando al volver.
@@ -164,7 +164,7 @@ Valores literales de los tokens de `app/globals.css`, porque el canvas no lee va
 2. **Contrato.** Crear `app/lib/games/engine.ts` con los tipos y `app/lib/games/registry.ts` con `ENGINES` vacío. Verificación: `npx tsc --noEmit` pasa.
 3. **Entidades.** Crear `constants.ts`, `palette.ts` y `entities.ts`, portando las clases de `game.js` a TypeScript con `draw(ctx)`. Todavía no las usa nadie.
 4. **Motor.** Crear `input.ts` e `index.ts` con `createAsteroidsEngine`: estado por instancia, bucle rAF con `dt` ≤ 50 ms, colisiones, niveles, power-up, `onStats` solo en cambios y `onGameOver` una vez. Sin HUD ni overlay en el canvas. Registrarlo en `ENGINES`.
-5. **Canvas y reproductor.** Crear `app/components/game-canvas.tsx`, que crea el motor en un efecto y lo destruye en el *cleanup* (eso cubre la ruta oculta por `<Activity>`). Cambiar `GamePlayer`: si `ENGINES[game.id]` existe, renderiza `GameCanvas` en `.crt-screen` en lugar de `.game-arena`, no arranca el intervalo de simulación y toma puntuación, vidas, nivel y power de `onStats`. Conectar PAUSA, `P`/`Escape`, `visibilitychange`, FIN, fin por vidas y "JUGAR DE NUEVO". Añadir el `hud-stat` "POWER". Antes, leer en `node_modules/next/dist/docs/` la guía `preserving-ui-state`. Verificación: se juega una partida completa en `/games/asteroides/jugar` y los demás juegos siguen simulados.
+5. **Canvas y reproductor.** Crear `app/components/game-canvas.tsx`, que crea el motor una sola vez en un efecto (lo guarda en un ref) y lo pausa en el *cleanup*: al ocultarse la ruta con `<Activity>` la partida queda en pausa y se conserva al volver. Cambiar `GamePlayer`: si `ENGINES[game.id]` existe, renderiza `GameCanvas` en `.crt-screen` en lugar de `.game-arena`, no arranca el intervalo de simulación y toma puntuación, vidas, nivel y power de `onStats`. Conectar PAUSA, `P`/`Escape`, `visibilitychange`, FIN, fin por vidas y "JUGAR DE NUEVO". Añadir el `hud-stat` "POWER". Antes, leer en `node_modules/next/dist/docs/` la guía `preserving-ui-state`. Verificación: se juega una partida completa en `/games/asteroides/jugar` y los demás juegos siguen simulados.
 6. **Diseño neón.** Ajustar la paleta y el glow del canvas (`shadowBlur` o doble trazo) con `/frontend-design`, comprobando legibilidad con las *scanlines* del CRT. Verificación visual en el navegador.
 
 Cada paso deja la app arrancando con `npm run dev`.
@@ -217,6 +217,8 @@ Cada paso deja la app arrancando con `npm run dev`.
 - **Sí:** teclado escuchado en `window` mientras la ruta está activa, ignorando inputs.
 - **No:** exigir foco en el canvas con `tabIndex`. Obliga a un clic previo para jugar.
 - **Sí:** pausa automática con `visibilitychange` y al ocultarse la ruta, sin reanudación automática.
+- **Sí:** al ocultarse la ruta la partida se conserva en pausa (el *cleanup* pausa el motor en lugar de destruirlo).
+- **No:** destruir el motor al ocultarse la ruta. Al volver con "atrás" se perdería la partida y el HUD mostraría la puntuación antigua.
 - **Sí:** FIN termina la partida y abre el modal con la puntuación actual.
 - **Sí:** recolorear a neón con la paleta de la plataforma, diseñado con `/frontend-design`.
 - **No:** blanco sobre negro como el original.
@@ -228,7 +230,7 @@ Cada paso deja la app arrancando con `npm run dev`.
 
 | Riesgo                                                              | Mitigación                                                                                          |
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `<Activity>` oculta la ruta y el efecto se re-ejecuta: bucles rAF duplicados o listeners huérfanos | El motor se crea en el efecto y `destroy()` en el *cleanup*; `destroy()` cancela rAF y quita todos los listeners. Criterio de aceptación dedicado. |
+| `<Activity>` oculta la ruta y el efecto se re-ejecuta: bucles rAF duplicados o listeners huérfanos | El motor se crea una sola vez y el *cleanup* llama a `pause()`, que cancela rAF y quita los listeners de teclado; al volver no se crea un segundo motor. Criterio de aceptación dedicado. |
 | Re-renders de React a 60 fps por las estadísticas                   | `onStats` solo emite cuando cambia algún campo; `power` va redondeado a 0,1 s.                       |
 | Tras volver de una pausa larga, un `dt` enorme hace saltar la nave  | `resume()` reinicia la referencia de tiempo; `dt` sigue limitado a 50 ms.                            |
 | Las *scanlines* y la viñeta del CRT reducen la legibilidad del trazo fino | Glow y grosor de línea se ajustan en el paso 6 con `/frontend-design`.                           |

@@ -16,8 +16,8 @@ export type EngineEvents = {
 
 export interface GameEngine {
   start(): void; // arranca el bucle rAF y el input
-  pause(): void; // congela la simulación; deja de leer input de juego
-  resume(): void; // reanuda sin salto de dt (el primer frame tras reanudar usa dt = 0)
+  pause(): void; // congela la simulación; cancela rAF y quita los listeners de teclado
+  resume(): void; // reanuda sin salto de dt (el primer frame tras reanudar usa dt = 0) y vuelve a poner los listeners
   end(): void; // termina la partida (botón FIN) y emite onGameOver
   restart(): void; // partida nueva desde cero
   destroy(): void; // cancela rAF y quita todos los listeners
