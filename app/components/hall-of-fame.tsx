@@ -1,18 +1,70 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { formatScore, seededScores, type Game } from "@/app/data/games";
+import { useEffect, useState } from "react";
+import { formatScore, type Game } from "@/app/data/games";
+import { NAME_RE, normalizeName, toLeaderboardRow, type LeaderboardRow } from "@/app/lib/scores";
+import { createClient } from "@/app/lib/supabase/client";
 import { useUser } from "./use-user";
 
-export function HallOfFame({ games }: { games: Game[] }) {
+// Ranking real del Salón (SPEC 06): `boards` llega del servidor con el top 12
+// de cada juego (getLeaderboards, cacheado con el tag "scores").
+
+const PODIUM = [
+  { index: 1, className: "silver" },
+  { index: 0, className: "gold" },
+  { index: 2, className: "bronze" },
+] as const;
+
+// Mejor marca de la sesión mock (av_user) en un juego. Se consulta en el
+// navegador porque el usuario solo existe en localStorage. Devuelve null si no
+// hay fila, si el nombre no es válido o si la consulta falla.
+async function fetchMyBest(gameId: string, name: string): Promise<LeaderboardRow | null> {
+  try {
+    const { data, error } = await createClient()
+      .from("leaderboard")
+      .select("game_id, name, score, created_at, rank")
+      .eq("game_id", gameId)
+      .eq("name", name)
+      .maybeSingle();
+    if (error || !data) return null;
+    return toLeaderboardRow(data);
+  } catch {
+    return null;
+  }
+}
+
+export function HallOfFame({
+  games,
+  boards,
+}: {
+  games: Game[];
+  boards: Record<string, LeaderboardRow[]>;
+}) {
   const { user } = useUser();
   const [tab, setTab] = useState(games[0].id);
-  const rows = useMemo(() => seededScores(tab.length * 23 + 7, 12), [tab]);
+  const rows = boards[tab] ?? [];
   const game = games.find((g) => g.id === tab) ?? games[0];
 
-  // Marca ficticia del usuario, con el mismo cálculo que la plantilla.
-  const youRank = Math.floor(8 + (tab.length % 4));
-  const youScore = (rows[5]?.score ?? 0) - 2400;
+  const myName = user ? normalizeName(user.name) : null;
+  const myKey = myName && NAME_RE.test(myName) ? `${tab}:${myName}` : null;
+
+  // El resultado se guarda con su clave (juego + nombre): al cambiar de pestaña
+  // o de sesión, la marca anterior deja de mostrarse sin esperar a la consulta.
+  // `boards` está en las dependencias para volver a consultar cuando el servidor
+  // envía un ranking nuevo (tras guardar, updateTag("scores")).
+  const [mine, setMine] = useState<{ key: string; row: LeaderboardRow | null } | null>(null);
+  useEffect(() => {
+    if (!myKey || !myName) return;
+    let active = true;
+    fetchMyBest(tab, myName).then((row) => {
+      if (active) setMine({ key: myKey, row });
+    });
+    return () => {
+      active = false;
+    };
+  }, [tab, myName, myKey, boards]);
+
+  const myBest = mine && mine.key === myKey ? mine.row : null;
 
   return (
     <>
@@ -30,31 +82,28 @@ export function HallOfFame({ games }: { games: Game[] }) {
       </div>
 
       <div className="podium">
-        <div className="podium-slot silver">
-          <div className="rank-num">02</div>
-          <div className="name">{rows[1].name}</div>
-          <div className="score">{formatScore(rows[1].score)}</div>
-          <div className="date">{rows[1].date}</div>
-        </div>
-        <div className="podium-slot gold">
-          <div className="pixel text-[9px] tracking-[0.18em] text-gold">
-            CAMPEÓN
-          </div>
-          <div className="rank-num mt-1 text-[36px]">
-            01
-          </div>
-          <div className="name">{rows[0].name}</div>
-          <div className="score text-[20px]">
-            {formatScore(rows[0].score)}
-          </div>
-          <div className="date">{rows[0].date}</div>
-        </div>
-        <div className="podium-slot bronze">
-          <div className="rank-num">03</div>
-          <div className="name">{rows[2].name}</div>
-          <div className="score">{formatScore(rows[2].score)}</div>
-          <div className="date">{rows[2].date}</div>
-        </div>
+        {PODIUM.map(({ index, className }) => {
+          const r = rows[index];
+          const gold = index === 0;
+          return (
+            <div key={className} className={`podium-slot ${className}`}>
+              {gold && (
+                <div className="pixel text-[9px] tracking-[0.18em] text-gold">
+                  CAMPEÓN
+                </div>
+              )}
+              <div className={"rank-num" + (gold ? " mt-1 text-[36px]" : "")}>
+                {String(index + 1).padStart(2, "0")}
+              </div>
+              {/* Hueco sin marca: su diseño se resuelve en el paso 9 de la SPEC 06. */}
+              <div className="name">{r ? r.name : "—"}</div>
+              <div className={"score" + (gold ? " text-[20px]" : "")}>
+                {r ? formatScore(r.score) : "—"}
+              </div>
+              <div className="date">{r ? r.date : ""}</div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="hall-table">
@@ -66,7 +115,7 @@ export function HallOfFame({ games }: { games: Game[] }) {
         </div>
         {rows.map((r, i) => (
           <div
-            key={r.name + i}
+            key={r.name}
             className={"tr" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}
             style={{ animationDelay: `${i * 50}ms` }}
           >
@@ -76,21 +125,20 @@ export function HallOfFame({ games }: { games: Game[] }) {
             <div className="dt">{r.date}</div>
           </div>
         ))}
-        {user && (
+        {myBest && (
           <>
             <div className="tr you-label">▸ TU MEJOR MARCA EN {game.title}</div>
             <div className="tr you" style={{ animationDelay: `${rows.length * 50 + 50}ms` }}>
               <div className="rk text-yellow">
-                #{String(youRank).padStart(2, "0")}
+                #{String(myBest.rank).padStart(2, "0")}
               </div>
               <div className="pl text-yellow">
-                {user.name}
+                {myBest.name}
               </div>
               <div className="sc text-yellow text-shadow-[0_0_6px_rgba(245,255,0,0.5)]">
-                {formatScore(youScore || 9999)}
+                {formatScore(myBest.score)}
               </div>
-              {/* Fecha fija aceptada en el MVP (ver Riesgos en la spec). */}
-              <div className="dt">11/05/2026</div>
+              <div className="dt">{myBest.date}</div>
             </div>
           </>
         )}

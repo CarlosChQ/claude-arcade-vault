@@ -153,6 +153,13 @@ Usa `createClient` de `@supabase/supabase-js` con `auth: { persistSession: false
 - Con el cliente de `app/lib/supabase/client.ts`, consulta `leaderboard` con `game_id = tab` y `name = normalizeName(user.name)`.
 - Si no hay fila, el nombre no es válido o la consulta falla, la fila no se muestra.
 
+### Render de `/salon`
+
+- **Nota de implementación:** el ranking se renderiza dentro de `<Suspense>`, en un componente que llama a `await connection()` antes de `getLeaderboards()`. La cabecera y los enlaces siguen en el App Shell estático, y la ruta pasa de `○` a `◐`.
+- Motivo: con la página entera prerenderizada, `updateTag("scores")` invalida la caché de `getLeaderboards()`, pero la navegación del cliente sigue recibiendo la página estática antigua hasta que se regenera. Así fallaba el criterio "navegar a `/salon` muestra la nueva marca sin recargar".
+- `getLeaderboards()` mantiene `"use cache"` y `cacheTag("scores")`: se renderiza en cada petición, pero los datos salen de la caché, no de una consulta por visita.
+- El esqueleto de carga del Salón se diseña en el paso 9. Decisión tomada durante el paso 8.
+
 ### Modal "FIN DEL JUEGO" (`app/components/game-player.tsx`)
 
 | Estado         | Botón                                 | Texto                              |
