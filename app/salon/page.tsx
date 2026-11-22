@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { HallOfFame } from "@/app/components/hall-of-fame";
+import type { Game } from "@/app/data/games";
 import { getGames } from "@/app/data/catalog";
 import { getLeaderboards } from "@/app/lib/leaderboards";
 
@@ -15,7 +16,11 @@ export const metadata: Metadata = {
 // tras updateTag("scores") la navegación recibiría la página estática antigua
 // hasta que se regenerase. Los datos siguen saliendo de la caché de
 // getLeaderboards() ("use cache"), no de una consulta a Supabase por visita.
-export default function SalonPage() {
+export default async function SalonPage() {
+  // Catálogo cacheado ("use cache"): forma parte del App Shell, así el esqueleto
+  // muestra las pestañas reales y nada salta de sitio al llegar el ranking.
+  const games = await getGames();
+
   return (
     <div className="av-hall fade-in">
       <div className="hall-head">
@@ -25,8 +30,8 @@ export default function SalonPage() {
         </p>
       </div>
 
-      <Suspense fallback={<HallOfFameSkeleton />}>
-        <HallOfFameLoader />
+      <Suspense fallback={<HallOfFameSkeleton games={games} />}>
+        <HallOfFameLoader games={games} />
       </Suspense>
 
       <div className="mt-8 text-center">
@@ -38,21 +43,45 @@ export default function SalonPage() {
   );
 }
 
-async function HallOfFameLoader() {
+async function HallOfFameLoader({ games }: { games: Game[] }) {
   await connection();
-  const [games, boards] = await Promise.all([getGames(), getLeaderboards()]);
+  const boards = await getLeaderboards();
   return <HallOfFame games={games} boards={boards} />;
 }
 
-// Esqueleto provisional: su diseño se resuelve en el paso 9 de la SPEC 06.
-function HallOfFameSkeleton() {
+// Esqueleto: misma estructura que HallOfFame (pestañas, podio, tabla) para que
+// el ranking real ocupe el mismo sitio al llegar.
+function HallOfFameSkeleton({ games }: { games: Game[] }) {
   return (
-    <div aria-busy="true">
-      <div className="podium">
-        <div className="podium-slot silver"></div>
-        <div className="podium-slot gold"></div>
-        <div className="podium-slot bronze"></div>
+    <div aria-busy="true" aria-label="Cargando el Salón de la Fama">
+      <div className="hall-tabs">
+        {games.map((g, i) => (
+          <button key={g.id} type="button" className={"chip" + (i === 0 ? " active" : "")} disabled>
+            {g.title}
+          </button>
+        ))}
       </div>
+
+      <div className="podium">
+        {(["silver", "gold", "bronze"] as const).map((metal, i) => {
+          const gold = metal === "gold";
+          return (
+            <div key={metal} className={`podium-slot ${metal} vacant`}>
+              {gold && (
+                <div className="pixel text-[9px] tracking-[0.18em] text-gold">
+                  CAMPEÓN
+                </div>
+              )}
+              <div className={"rank-num" + (gold ? " mt-1 text-[36px]" : "")}>
+                {String([2, 1, 3][i]).padStart(2, "0")}
+              </div>
+              <span className="sk-bar"></span>
+              <span className="sk-bar w-[40%]"></span>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="hall-table">
         <div className="th">
           <div>RANGO</div>
@@ -60,6 +89,14 @@ function HallOfFameSkeleton() {
           <div>PUNTUACIÓN</div>
           <div>FECHA</div>
         </div>
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="tr sk">
+            <span className="sk-bar"></span>
+            <span className="sk-bar"></span>
+            <span className="sk-bar"></span>
+            <span className="sk-bar"></span>
+          </div>
+        ))}
       </div>
     </div>
   );

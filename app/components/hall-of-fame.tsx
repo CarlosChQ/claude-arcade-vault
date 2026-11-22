@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatScore, type Game } from "@/app/data/games";
 import { NAME_RE, normalizeName, toLeaderboardRow, type LeaderboardRow } from "@/app/lib/scores";
@@ -86,7 +87,7 @@ export function HallOfFame({
           const r = rows[index];
           const gold = index === 0;
           return (
-            <div key={className} className={`podium-slot ${className}`}>
+            <div key={className} className={`podium-slot ${className}` + (r ? "" : " vacant")}>
               {gold && (
                 <div className="pixel text-[9px] tracking-[0.18em] text-gold">
                   CAMPEÓN
@@ -95,12 +96,12 @@ export function HallOfFame({
               <div className={"rank-num" + (gold ? " mt-1 text-[36px]" : "")}>
                 {String(index + 1).padStart(2, "0")}
               </div>
-              {/* Hueco sin marca: su diseño se resuelve en el paso 9 de la SPEC 06. */}
-              <div className="name">{r ? r.name : "—"}</div>
+              {/* Un puesto sin dueño mantiene la altura del podio: mismas tres líneas. */}
+              <div className="name">{r ? r.name : "LIBRE"}</div>
               <div className={"score" + (gold ? " text-[20px]" : "")}>
                 {r ? formatScore(r.score) : "—"}
               </div>
-              <div className="date">{r ? r.date : ""}</div>
+              <div className="date">{r ? r.date : "\u00a0"}</div>
             </div>
           );
         })}
@@ -113,6 +114,20 @@ export function HallOfFame({
           <div>PUNTUACIÓN</div>
           <div>FECHA</div>
         </div>
+        {rows.length === 0 && (
+          <div className="hall-empty">
+            <h2>
+              SIN MARCAS TODAVÍA<span className="caret" aria-hidden="true">_</span>
+            </h2>
+            <p>
+              Nadie ha guardado una puntuación en {game.title}. La primera que guardes se queda
+              con el oro.
+            </p>
+            <Link href={`/games/${game.id}/jugar`} className="btn yellow">
+              JUGAR A {game.title}
+            </Link>
+          </div>
+        )}
         {rows.map((r, i) => (
           <div
             key={r.name}
