@@ -21,6 +21,17 @@ export type ScoreRow = { rank: number; name: string; score: number; date: string
 
 export const GAMES: Game[] = [
   {
+    id: "asteroides",
+    title: "ASTEROIDES",
+    short: "Rota, propulsa y dispara en un campo de rocas sin fin.",
+    long: "Una nave vectorial flota en un espacio sin bordes. Parte las rocas grandes en medianas y las medianas en pequeñas, recoge el núcleo 3x para disparar en abanico y sobrevive a cada oleada, más densa que la anterior.",
+    cat: "SHOOTER",
+    cover: "cover-asteroides",
+    color: "cyan",
+    best: 38600,
+    plays: "1.2K",
+  },
+  {
     id: "bloque-buster",
     title: "BLOQUE BUSTER",
     short: "Rebota la pelota y destruye muros de neón.",

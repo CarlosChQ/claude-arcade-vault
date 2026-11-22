@@ -1,6 +1,6 @@
 # SPEC 05 — Asteroides: primer juego real de Arcade Vault
 
-> **Estado:** Abrobado
+> **Estado:** Aprobado
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-11-18
 > **Objetivo:** Portar el juego de `references/started-games/02-asteroids` a una entrada nueva `asteroides` del catálogo, jugable con teclado en `/games/asteroides/jugar` dentro del reproductor existente, con HUD y modal React y estilo neón.
