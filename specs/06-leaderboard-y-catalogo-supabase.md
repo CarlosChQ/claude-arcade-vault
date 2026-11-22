@@ -116,6 +116,7 @@ export async function getLeaderboards(): Promise<Record<string, LeaderboardRow[]
 - `"INVITADO"` es un nombre válido. Todas las partidas sin nombre comparten esa fila del ranking.
 - `LeaderboardRow` sustituye a `ScoreRow` en el Salón. `ScoreRow` y `seededScores` se quedan en `app/data/games.ts` porque los usa la ficha.
 - La fecha se formatea en `es-ES` con zona `Europe/Madrid`.
+- **Nota de implementación:** `getLeaderboards()` vive en `app/lib/leaderboards.ts` (solo servidor), no en `scores.ts`. `HallOfFame` (Client Component) necesita `normalizeName`, y un módulo que depende de `cacheTag` no puede entrar en el bundle del navegador. `scores.ts` conserva `NAME_RE`, `MAX_SCORE`, `normalizeName`, `LeaderboardRow` y `toLeaderboardRow` (mapeo de una fila de la vista, compartido por servidor y navegador). Decisión tomada durante el paso 6.
 
 ### Server Action (`app/games/[id]/jugar/actions.ts`)
 
