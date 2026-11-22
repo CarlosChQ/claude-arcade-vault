@@ -1,11 +1,8 @@
-// Catálogo de Arcade Vault (SPEC 06): los juegos viven en la tabla `games` de
-// Supabase. Aquí quedan los tipos, las utilidades de formato y los datos
-// ficticios que siguen usando la ficha y la home (PLAYERS, seededScores).
-
-import { cacheLife, cacheTag } from "next/cache";
-
-import type { Database } from "@/app/lib/supabase/database.types";
-import { createPublicClient } from "@/app/lib/supabase/public";
+// Tipos y utilidades del catálogo de Arcade Vault. Los juegos viven en la
+// tabla `games` de Supabase y se leen con getGames()/getGame() de
+// app/data/catalog.ts (solo servidor). Este módulo lo importan también Client
+// Components, así que no puede depender de next/cache ni de Supabase.
+// PLAYERS y seededScores siguen siendo ficticios: los usa la ficha /games/[id].
 
 export type Category = "ARCADE" | "PUZZLE" | "SHOOTER" | "VERSUS";
 export type AccentColor = "cyan" | "magenta" | "yellow" | "green";
@@ -58,44 +55,4 @@ const scoreFormatter = new Intl.NumberFormat("es-ES");
 /** Única fuente de formato de puntuaciones: 28450 → "28.450". */
 export function formatScore(n: number): string {
   return scoreFormatter.format(n);
-}
-
-type GameRow = Database["public"]["Tables"]["games"]["Row"];
-
-// Los CHECK de la tabla garantizan los valores de `cat` y `color`.
-function toGame(row: GameRow): Game {
-  return {
-    id: row.id,
-    title: row.title,
-    short: row.summary,
-    long: row.description,
-    cat: row.cat as Category,
-    cover: row.cover,
-    color: row.color as AccentColor,
-    best: row.best,
-    plays: row.plays,
-  };
-}
-
-export async function getGames(): Promise<Game[]> {
-  "use cache";
-  cacheTag("games");
-  cacheLife("hours");
-
-  const { data, error } = await createPublicClient()
-    .from("games")
-    .select("*")
-    .order("sort_order", { ascending: true });
-
-  if (error) {
-    throw new Error("[games] No se pudo leer el catálogo", { cause: error });
-  }
-
-  return data.map(toGame);
-}
-
-// Busca en el catálogo cacheado: no hace una consulta aparte.
-export async function getGame(id: string): Promise<Game | undefined> {
-  const games = await getGames();
-  return games.find((g) => g.id === id);
 }

@@ -144,6 +144,7 @@ Usa `createClient` de `@supabase/supabase-js` con `auth: { persistSession: false
 - El tipo `Game` no cambia. Una función interna mapea `summary → short` y `description → long`.
 - `getGames()`: `"use cache"`, `cacheTag("games")` y `cacheLife("hours")`. Ordena por `sort_order`. Si Supabase devuelve un error, lanza `Error("[games] No se pudo leer el catálogo")`.
 - `getGame(id)`: busca en el resultado de `getGames()`, así que no hace una consulta aparte.
+- **Nota de implementación:** `getGames()` y `getGame()` viven en `app/data/catalog.ts`, no en `games.ts`. Varios Client Components importan `games.ts` (`formatScore`, `CATS`, `seededScores`, tipos), y Next.js no permite que un módulo que depende de `cacheTag` entre en el bundle del navegador. `games.ts` conserva los tipos, `CATS`, `PLAYERS`, `seededScores` y `formatScore`. Decisión tomada durante el paso 5.
 
 ### Fila "TU MEJOR MARCA"
 

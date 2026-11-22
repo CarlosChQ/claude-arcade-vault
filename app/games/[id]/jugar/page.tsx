@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { GamePlayer } from "@/app/components/game-player";
-import { getGame, getGames } from "@/app/data/games";
+import { getGame, getGames } from "@/app/data/catalog";
 
 export async function generateStaticParams() {
   const games = await getGames();

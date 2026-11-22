@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HallOfFame } from "@/app/components/hall-of-fame";
-import { getGames } from "@/app/data/games";
+import { getGames } from "@/app/data/catalog";
 
 export const metadata: Metadata = {
   title: "Salón de la Fama · Arcade Vault",
