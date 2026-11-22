@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useReducer, useRef, useState } from "react";
+import { Fragment, useEffect, useReducer, useRef, useState, useTransition } from "react";
 import { formatScore, type Game } from "@/app/data/games";
+import { submitScore } from "@/app/games/[id]/jugar/actions";
 import type { GameStats } from "@/app/lib/games/engine";
 import { ENGINES } from "@/app/lib/games/registry";
 import { GameCanvas, type GameCanvasHandle } from "./game-canvas";
-import { saveScore, useUser } from "./use-user";
+import { useUser } from "./use-user";
 
 // Si el juego tiene un motor registrado en ENGINES, se juega de verdad en un canvas y el
 // HUD se alimenta de sus estadísticas. Si no, se mantiene la simulación decorativa de la
@@ -14,10 +15,13 @@ import { saveScore, useUser } from "./use-user";
 
 const TICK_MS = 220;
 
+// Guardado de la puntuación en Supabase desde el modal "FIN DEL JUEGO".
+type SaveStatus = "idle" | "saving" | "error" | "saved";
+
 type State = GameStats & {
   paused: boolean;
   over: boolean;
-  saved: boolean;
+  save: SaveStatus;
 };
 
 type Action =
@@ -26,7 +30,7 @@ type Action =
   | { type: "pause" }
   | { type: "resume" }
   | { type: "end" }
-  | { type: "saved" }
+  | { type: "save"; status: SaveStatus }
   | { type: "restart" };
 
 const INITIAL: State = {
@@ -36,7 +40,7 @@ const INITIAL: State = {
   power: null,
   paused: false,
   over: false,
-  saved: false,
+  save: "idle",
 };
 
 function reducer(state: State, action: Action): State {
@@ -56,8 +60,8 @@ function reducer(state: State, action: Action): State {
       return state.paused ? { ...state, paused: false } : state;
     case "end":
       return state.over ? state : { ...state, over: true };
-    case "saved":
-      return { ...state, saved: true };
+    case "save":
+      return { ...state, save: action.status };
     case "restart":
       return INITIAL;
   }
@@ -72,6 +76,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 export function GamePlayer({ game }: { game: Game }) {
   const { user } = useUser();
   const [state, dispatch] = useReducer(reducer, INITIAL);
+  const [, startTransition] = useTransition();
   // null = el jugador aún no ha editado el nombre; se usa el de la sesión o "INVITADO".
   const [editedName, setEditedName] = useState<string | null>(null);
   const name = editedName ?? user?.name ?? "INVITADO";
@@ -79,7 +84,7 @@ export function GamePlayer({ game }: { game: Game }) {
   const createEngine = ENGINES[game.id];
   const canvasRef = useRef<GameCanvasHandle>(null);
 
-  const { score, lives, level, power, paused, over, saved } = state;
+  const { score, lives, level, power, paused, over, save } = state;
 
   // Simulación: el intervalo vive en el efecto y se limpia en su cleanup: se detiene al pausar,
   // al terminar y cuando Next.js oculta la ruta con <Activity> al navegar fuera.
@@ -146,8 +151,17 @@ export function GamePlayer({ game }: { game: Game }) {
   };
 
   const onSave = () => {
-    saveScore({ game: game.id, score, name });
-    dispatch({ type: "saved" });
+    if (save === "saving" || save === "saved") return;
+    dispatch({ type: "save", status: "saving" });
+    startTransition(async () => {
+      try {
+        const result = await submitScore({ gameId: game.id, name, score });
+        dispatch({ type: "save", status: result.ok ? "saved" : "error" });
+      } catch {
+        // Red cortada o servidor caído: la acción ni siquiera respondió.
+        dispatch({ type: "save", status: "error" });
+      }
+    });
   };
 
   return (
@@ -250,18 +264,31 @@ export function GamePlayer({ game }: { game: Game }) {
             <h2 id="game-over-title">FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{formatScore(score)}</div>
-            {!saved ? (
-              <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) => setEditedName(e.target.value.toUpperCase().slice(0, 10))}
-                  placeholder="TUS INICIALES"
-                  aria-label="Tus iniciales"
-                />
-                <button type="button" className="btn yellow" onClick={onSave}>
-                  GUARDAR PUNTUACIÓN
-                </button>
-              </div>
+            {save !== "saved" ? (
+              <>
+                <div className="input-row">
+                  <input
+                    value={name}
+                    onChange={(e) => setEditedName(e.target.value.toUpperCase().slice(0, 10))}
+                    placeholder="TUS INICIALES"
+                    aria-label="Tus iniciales"
+                    disabled={save === "saving"}
+                  />
+                  <button
+                    type="button"
+                    className="btn yellow"
+                    onClick={onSave}
+                    disabled={save === "saving"}
+                  >
+                    {save === "saving" ? "GUARDANDO…" : "GUARDAR PUNTUACIÓN"}
+                  </button>
+                </div>
+                {save === "error" && (
+                  <p className="form-error" role="alert">
+                    NO SE PUDO GUARDAR
+                  </p>
+                )}
+              </>
             ) : (
               <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
             )}

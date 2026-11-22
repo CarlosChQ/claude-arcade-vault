@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { formatScore, getGame, getGames, seededScores } from "@/app/data/games";
+import { getGame, getGames } from "@/app/data/catalog";
+import { formatScore, seededScores } from "@/app/data/games";
 
 export async function generateStaticParams() {
   const games = await getGames();

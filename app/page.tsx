@@ -3,7 +3,8 @@ import Link from "next/link";
 import { FeatureIcon, FloatingSilhouettes, type FeatureIconKind } from "@/app/components/home-art";
 import { MiniCard } from "@/app/components/mini-card";
 import { Reveal } from "@/app/components/reveal";
-import { formatScore, getGames, type AccentColor } from "@/app/data/games";
+import { getGames } from "@/app/data/catalog";
+import { formatScore, type AccentColor } from "@/app/data/games";
 import { RECENT_SCORES, TOP_PLAYERS } from "@/app/data/home";
 
 // Home / landing de Arcade Vault (SPEC 02).

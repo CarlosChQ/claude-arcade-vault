@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Library } from "@/app/components/library";
-import { getGames } from "@/app/data/games";
+import { getGames } from "@/app/data/catalog";
 
 export const metadata: Metadata = {
   title: "Biblioteca · Arcade Vault",
