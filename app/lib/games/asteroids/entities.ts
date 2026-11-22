@@ -33,7 +33,7 @@ import {
   W,
   type AsteroidSize,
 } from "./constants";
-import { PALETTE } from "./palette";
+import { GLOW_BLUR, LINE_WIDTH, PALETTE, type NeonTone } from "./palette";
 
 // ── Utilidades ───────────────────────────────────────────────────────────────
 export const wrap = (v: number, max: number) => ((v % max) + max) % max;
@@ -44,6 +44,26 @@ export const randInt = (min: number, max: number) => Math.floor(rand(min, max + 
 
 /** Parpadeo a 8 Hz: true en los frames en que el objeto no se dibuja. */
 const blinkOff = (t: number) => Math.floor(t * 8) % 2 === 0;
+
+/** shadowBlur se mide en píxeles del buffer e ignora la transformación: se escala a mano. */
+const glowBlur = (ctx: CanvasRenderingContext2D) => GLOW_BLUR * ctx.getTransform().a;
+
+/** Traza el path actual como un haz de fósforo: halo con el color del token y núcleo aclarado. */
+function neonStroke(ctx: CanvasRenderingContext2D, tone: NeonTone, width: number = LINE_WIDTH) {
+  ctx.save();
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.shadowColor = tone.glow;
+  ctx.shadowBlur = glowBlur(ctx);
+  ctx.strokeStyle = tone.glow;
+  ctx.lineWidth = width;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = tone.core;
+  ctx.lineWidth = width / 2;
+  ctx.stroke();
+  ctx.restore();
+}
 
 // ── Bala ─────────────────────────────────────────────────────────────────────
 export class Bullet {
@@ -70,10 +90,14 @@ export class Bullet {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = PALETTE.bullet;
+    ctx.save();
+    ctx.shadowColor = PALETTE.bullet.glow;
+    ctx.shadowBlur = glowBlur(ctx);
+    ctx.fillStyle = PALETTE.bullet.core;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
   }
 }
 
@@ -128,14 +152,11 @@ export class Asteroid {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rot);
-    ctx.strokeStyle = PALETTE.asteroid;
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(this.verts[0][0], this.verts[0][1]);
     for (let i = 1; i < this.verts.length; i++) ctx.lineTo(this.verts[i][0], this.verts[i][1]);
     ctx.closePath();
-    ctx.stroke();
+    neonStroke(ctx, PALETTE.asteroid);
     ctx.restore();
   }
 }
@@ -175,16 +196,20 @@ export class PowerUp {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(Math.PI / 4);
-    ctx.strokeStyle = PALETTE.powerUp;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(-r, -r, r * 2, r * 2);
+    ctx.beginPath();
+    ctx.rect(-r, -r, r * 2, r * 2);
+    neonStroke(ctx, PALETTE.powerUp);
     ctx.restore();
 
-    ctx.fillStyle = PALETTE.powerUp;
+    ctx.save();
+    ctx.shadowColor = PALETTE.powerUp.glow;
+    ctx.shadowBlur = glowBlur(ctx);
+    ctx.fillStyle = PALETTE.powerUp.core;
     ctx.font = "bold 12px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("3x", this.x, this.y);
+    ctx.restore();
   }
 }
 
@@ -265,27 +290,23 @@ export class Ship {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
 
     // Silueta clásica: triángulo con muesca trasera
-    ctx.strokeStyle = PALETTE.ship;
     ctx.beginPath();
     ctx.moveTo(20, 0); // nariz
     ctx.lineTo(-12, -9); // ala izquierda
     ctx.lineTo(-7, 0); // muesca trasera
     ctx.lineTo(-12, 9); // ala derecha
     ctx.closePath();
-    ctx.stroke();
+    neonStroke(ctx, PALETTE.ship);
 
     // Llama del propulsor
     if (this.thrusting && Math.random() > 0.35) {
-      ctx.strokeStyle = PALETTE.thrust;
       ctx.beginPath();
       ctx.moveTo(-8, -4);
       ctx.lineTo(-8 - rand(6, 14), 0);
       ctx.lineTo(-8, 4);
-      ctx.stroke();
+      neonStroke(ctx, PALETTE.thrust);
     }
 
     ctx.restore();
@@ -300,10 +321,10 @@ export class Particle {
   vy: number;
   life: number;
   ttl: number;
-  color: string; // color del objeto que explota
+  color: NeonTone; // tono del objeto que explota
   dead = false;
 
-  constructor(x: number, y: number, color: string) {
+  constructor(x: number, y: number, color: NeonTone) {
     this.x = x;
     this.y = y;
     this.color = color;
@@ -325,12 +346,10 @@ export class Particle {
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.globalAlpha = Math.max(0, this.ttl / this.life);
-    ctx.strokeStyle = this.color;
-    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(this.x, this.y);
     ctx.lineTo(this.x - this.vx * 0.05, this.y - this.vy * 0.05);
-    ctx.stroke();
+    neonStroke(ctx, this.color, LINE_WIDTH * 0.75);
     ctx.restore();
   }
 }

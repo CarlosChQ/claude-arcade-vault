@@ -21,7 +21,7 @@ import {
 } from "./constants";
 import { Asteroid, Bullet, Particle, PowerUp, Ship, dist, rand } from "./entities";
 import { createKeyboardInput } from "./input";
-import { PALETTE } from "./palette";
+import { PALETTE, PHOSPHOR_DECAY, type NeonTone } from "./palette";
 
 type State = "playing" | "dead" | "gameover";
 
@@ -54,6 +54,7 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
   let powerUpSpawned = false;
   let killsSinceSpawn = 0;
   let gameOverEmitted = false;
+  let fullClear = true; // el próximo draw() borra del todo, sin estela
 
   // ── Estado del bucle ─────────────────────────────────────────────────────
   let rafId: number | null = null;
@@ -90,6 +91,7 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
     state = "playing";
     deadTimer = 0;
     gameOverEmitted = false;
+    fullClear = true;
     spawnAsteroids(START_ASTEROIDS);
   }
 
@@ -104,7 +106,7 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
     spawnAsteroids(3 + level);
   }
 
-  function explode(x: number, y: number, count: number, color: string) {
+  function explode(x: number, y: number, count: number, color: NeonTone) {
     for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
   }
 
@@ -209,8 +211,14 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
 
   // ── Draw (sin HUD ni overlay) ────────────────────────────────────────────
   function draw() {
+    // Persistencia de fósforo: el negro tapa el frame anterior solo en parte (estela corta).
+    // Una partida nueva parte de una pantalla limpia.
+    ctx.save();
+    ctx.globalAlpha = fullClear ? 1 : PHOSPHOR_DECAY;
     ctx.fillStyle = PALETTE.background;
     ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    fullClear = false;
     particles.forEach((p) => p.draw(ctx));
     asteroids.forEach((a) => a.draw(ctx));
     powerUps.forEach((p) => p.draw(ctx));
