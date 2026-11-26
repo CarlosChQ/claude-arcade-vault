@@ -2,12 +2,25 @@
 // Un motor es TypeScript puro (sin React): dibuja en su canvas a 60 fps y solo
 // avisa a React cuando cambian las estadísticas o termina la partida.
 
+import type { AccentColor } from "@/app/data/games";
+
+/** Un hud-stat adicional (líneas, power-up activo…). `tone` colorea el valor. */
+export type HudExtra = { label: string; value: string; tone?: AccentColor };
+
 export type GameStats = {
   score: number;
-  lives: number;
+  lives: number | null; // null: el juego no tiene vidas y el HUD oculta los corazones
   level: number;
-  power: number | null; // segundos restantes del disparo triple, redondeados a 0,1; null si no está activo
+  extras: HudExtra[]; // hud-stat adicionales, en orden
 };
+
+/** Compara dos listas de extras por contenido, no por referencia. */
+export function sameExtras(a: HudExtra[], b: HudExtra[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((x, i) => x.label === b[i].label && x.value === b[i].value && x.tone === b[i].tone)
+  );
+}
 
 export type EngineEvents = {
   onStats: (stats: GameStats) => void; // solo cuando algún campo cambia, nunca en cada frame

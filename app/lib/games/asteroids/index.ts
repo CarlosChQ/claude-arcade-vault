@@ -2,7 +2,7 @@
 // No hay globales de módulo mutables: dos montajes seguidos no comparten estado.
 // El canvas no pinta HUD ni "GAME OVER": React recibe las estadísticas por onStats/onGameOver.
 
-import type { CreateEngine, GameStats } from "../engine";
+import { sameExtras, type CreateEngine, type GameStats } from "../engine";
 import {
   DEAD_TIME,
   H,
@@ -228,8 +228,11 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
 
   // ── Eventos hacia React ──────────────────────────────────────────────────
   function currentStats(): GameStats {
+    // Segundos restantes del disparo triple, redondeados a 0,1. Sin extra si no está activo.
     const power = ship.tripleShot > 0 ? Math.round(ship.tripleShot * 10) / 10 : 0;
-    return { score, lives, level, power: power > 0 ? power : null };
+    const extras =
+      power > 0 ? [{ label: "Power", value: `3x ${power.toFixed(1)}s`, tone: "green" as const }] : [];
+    return { score, lives, level, extras };
   }
 
   /** Emite onStats solo si algún campo cambió desde la última emisión. */
@@ -241,7 +244,7 @@ export const createAsteroidsEngine: CreateEngine = (canvas, events) => {
       prev.score === s.score &&
       prev.lives === s.lives &&
       prev.level === s.level &&
-      prev.power === s.power
+      sameExtras(prev.extras, s.extras)
     ) {
       return;
     }
