@@ -59,3 +59,5 @@ The project follows Spec Driven Design using the `/spec` and `/spec-impl` skills
 ```bash
 npx skills@latest add Klerith/fernando-skills
 ```
+
+To add a real game (ported from `references/started-games/` or original), run `/nuevo-juego <folder or description>`. This local skill lives in `.claude/skills/nuevo-juego/`. It asks questions and writes `specs/NN-juego-<id>.md` covering the engine, catalog row, cover, HUD and leaderboard. Implement that spec with `/spec-impl` afterwards.

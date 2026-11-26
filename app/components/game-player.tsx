@@ -37,7 +37,7 @@ const INITIAL: State = {
   score: 0,
   lives: 3,
   level: 1,
-  power: null,
+  extras: [],
   paused: false,
   over: false,
   save: "idle",
@@ -84,7 +84,7 @@ export function GamePlayer({ game }: { game: Game }) {
   const createEngine = ENGINES[game.id];
   const canvasRef = useRef<GameCanvasHandle>(null);
 
-  const { score, lives, level, power, paused, over, save } = state;
+  const { score, lives, level, extras, paused, over, save } = state;
 
   // Simulación: el intervalo vive en el efecto y se limpia en su cleanup: se detiene al pausar,
   // al terminar y cuando Next.js oculta la ruta con <Activity> al navegar fuera.
@@ -178,32 +178,35 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="l">Puntuación</div>
             <div className="v">{formatScore(score)}</div>
           </div>
-          <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            {/* ♥ no existe en Press Start 2P: cada corazón se pinta con system-ui, como en la
-                plantilla, y no con el fallback escalado que genera next/font. Los espacios
-                siguen en la fuente pixel para conservar la separación. */}
-            <div className="v">
-              {lives > 0
-                ? Array.from({ length: lives }, (_, i) => (
-                    <Fragment key={i}>
-                      {i > 0 && " "}
-                      <span className="font-[system-ui]">♥</span>
-                    </Fragment>
-                  ))
-                : "—"}
+          {/* lives === null: el juego no tiene vidas y no se muestran. */}
+          {lives !== null && (
+            <div className="hud-stat lives">
+              <div className="l">Vidas</div>
+              {/* ♥ no existe en Press Start 2P: cada corazón se pinta con system-ui, como en la
+                  plantilla, y no con el fallback escalado que genera next/font. Los espacios
+                  siguen en la fuente pixel para conservar la separación. */}
+              <div className="v">
+                {lives > 0
+                  ? Array.from({ length: lives }, (_, i) => (
+                      <Fragment key={i}>
+                        {i > 0 && " "}
+                        <span className="font-[system-ui]">♥</span>
+                      </Fragment>
+                    ))
+                  : "—"}
+              </div>
             </div>
-          </div>
+          )}
           <div className="hud-stat level">
             <div className="l">Nivel</div>
             <div className="v">{String(level).padStart(2, "0")}</div>
           </div>
-          {power !== null && (
-            <div className="hud-stat power">
-              <div className="l">Power</div>
-              <div className="v">3x {power.toFixed(1)}s</div>
+          {extras.map((extra) => (
+            <div key={extra.label} className={extra.tone ? `hud-stat ${extra.tone}` : "hud-stat"}>
+              <div className="l">{extra.label}</div>
+              <div className="v">{extra.value}</div>
             </div>
-          )}
+          ))}
         </div>
         <div className="hud-actions">
           <button type="button" className="btn yellow" onClick={togglePause}>
